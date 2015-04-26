@@ -172,7 +172,7 @@ console.log("Server is listening in http://localhost:"+
    /api?stats=
       dns         -> {"dns":"up"}
       dhcp        -> {"dhcp":"up"}
-      ipfwd  -> {"ip-forward":"up"}
+      ipforward   -> {"ip-forward":"up"}
       hostadp     -> {"hostadp":"up"}
       ipTables    -> {"ipTables":"up"}
       wlan        -> {"wlan":"up"}

@@ -1,7 +1,7 @@
 {
   "name": "Rest_Wifi-Pi",
   "description": "Simple API to manage RaspWifi-Pi",
-  "version": "0.1",
+  "version": "0.0.1",
   "keywords": [
     "node",
     "raspberry",

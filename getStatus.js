@@ -146,7 +146,7 @@ function allStatus(callback) {
             console.log("ipTables: "+results.ipTables.iptables);
             console.log("wlan: "+results.wlan.wlan);
             */
-            
+
             status.dns = results.dns.dns;
             status.dhcp = results.dhcp.dhcp;
             status.ipfwd = results.ipfwd.ipfwd;

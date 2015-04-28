@@ -13,8 +13,6 @@ if (process.argv.length < 3) {
 }
 
 
-//var stat = clients.getClients();
-
 
 var server = http.createServer(function (request, response) {
 
@@ -31,36 +29,27 @@ var server = http.createServer(function (request, response) {
     request.on('end', function () {
         response.writeHead(200, {"Content-Type": "application/json"});
 
-        //extract path, method and query from URL
+        //extract path and method from URL
         var clientReq = url.parse(request.url);
         var path = clientReq.pathname;
-        if (clientReq.query != null) {
-            var query = clientReq.query.split("=")[1];
-            var method = clientReq.query.split("=")[0];
-        } else {
-            var query = "null";
-            var method = "null";
-        }
+        //console.log("-> "+path);
+
+        //console.log("path: "+path);
+        var paths = path.split("/");
+        //console.log("ruta: "+paths[1]);
 
 
-         /*//Only for debug request
-         console.log("-> path: "   + path);
-         console.log("-> method: " + method);
-         console.log("-> query: "  + query);
-         */
-
-        if (path == "/api") {
+        if (paths[1] == "api") {
             // resonse status
-            if (method === "stats") {
-                switch (query) {
+            if (paths[2] === "stats") {
+                switch (paths[3]) {
                    case 'dns':
                    {
                        response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.dnsStat(function(err, rsp){
-                           //response.end(JSON.stringify(rsp, null, 2));
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end();
-                           console.log(ip+' Response with dns stats: '+rsp.dns);
+                           console.log(ip+' - Response with dns stats: '+rsp.dns);
                        });
                        break;
                    }
@@ -69,10 +58,9 @@ var server = http.createServer(function (request, response) {
                    {
                        response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.dhcpStat(function(err, rsp){
-                           //response.end(JSON.stringify(rsp, null, 2));
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end();
-                           console.log(ip+' Response with dhcp stats: '+rsp.dhcp);
+                           console.log(ip+' - Response with dhcp stats: '+rsp.dhcp);
                        });
                        break;
                    }
@@ -83,7 +71,7 @@ var server = http.createServer(function (request, response) {
                        getStatus.ipfowardStat(function(err, rsp){
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end()
-                           console.log(ip+' Response with ipforward stats: '+rsp.ipfwd);
+                           console.log(ip+' - Response with ipforward stats: '+rsp.ipfwd);
                        });
                        break;
                    }
@@ -94,18 +82,18 @@ var server = http.createServer(function (request, response) {
                        getStatus.hostapdStat(function(err, rsp){
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end();
-                           console.log(ip+' Response with hostapd stats: '+rsp.hostapd);
+                           console.log(ip+' - Response with hostapd stats: '+rsp.hostapd);
                        });
                        break;
                    }
 
-                   case 'iptables': //iptablesStat
+                   case 'iptables':
                    {
                        response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.iptablesStat(function(err, rsp){
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end()
-                           console.log(ip+' Response with iptables stats: '+rsp.iptables);
+                           console.log(ip+' - Response with iptables stats: '+rsp.iptables);
                        });
                        break;
                    }
@@ -116,7 +104,7 @@ var server = http.createServer(function (request, response) {
                       getStatus.wlanStat(function(err, rsp){
                           response.write(JSON.stringify(rsp, null, 2));
                           response.end();
-                          console.log(ip+' Response with wlan stats: '+rsp.wlan);
+                          console.log(ip+' - Response with wlan stats: '+rsp.wlan);
                       });
                       break;
                    }
@@ -127,39 +115,49 @@ var server = http.createServer(function (request, response) {
                        getStatus.allStatus(function(err, rsp){
                            response.write(JSON.stringify(rsp, null, 2));
                            response.end();
-                           console.log(ip+' Response with all status');
+                           console.log(ip+' - Response with all status');
                        });
                        break;
                    }
 
                    default:
                    {
-                       response.writeHead(404, {"Content-Type": "application/json"});
-                       response.end();
-                       console.log(ip+' stats='+query+' not found');
+                       m404(response,ip,path);
                    }
                }
+            } else {
+                if (paths[2] != "list") {
+                    m404(response,ip,path);
+                }
             }
-            if (method === "list") {
-                switch (query) {
+
+
+            if (paths[2] === "list") {
+                switch (paths[3]) {
                     case 'clients':
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
-                        clients.getClients(function(err, rsp){
+                        //interface_id in input
+                        clients.getClients("eth0",function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
-                            console.log(ip+' Response with client list');
+
+                            console.log(ip+' - Response with client list');
                         });
                         break;;
                     }
                     default:
                     {
-                        response.writeHead(404, {"Content-Type": "application/json"});
-                        response.end();
-                        console.log(ip+' method- '+query+' not found');
+                        m404(response,ip,path);
                     }
                 }
+            } else {
+                if (paths[2] != "stats") {
+                    m404(response,ip,path);
+                }
             }
+       }  else {
+           m404(response,ip,path);
        }
     });
 });
@@ -168,8 +166,15 @@ server.listen(portlisten);
 console.log("Server is listening in http://localhost:"+
     portlisten+ " with PID "+ process.pid);
 
+
+
+function m404 (response,ip,path){
+    response.writeHead(404, {"Content-Type": "application/json"});
+    response.end();
+    console.log(ip+" - "+path+" 404 Not Found");
+}
 /*
-   /api?stats=
+   /api/stats/
       dns         -> {"dns":"up"}
       dhcp        -> {"dhcp":"up"}
       ipforward   -> {"ip-forward":"up"}
@@ -178,5 +183,13 @@ console.log("Server is listening in http://localhost:"+
       wlan        -> {"wlan":"up"}
       all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
                         "hostadp":"up","ipTables":"up","wlan":"up"}
+
+   /api/list/
+      clients     -> {
+                        "ip": ip,
+                        "mac": "00:00:00:00:00:00",
+                        "vendor": Product,
+                        "online": false
+                    }
 
 */

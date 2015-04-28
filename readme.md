@@ -2,7 +2,7 @@
 
 Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (asap). 
 
-node server.js [port_listen] (or 8080 by default)
+node server.js [port_listen] \(or 8080 by default\)
 
 
 curl -ki ip:port/api/stats/[query]
@@ -16,6 +16,7 @@ curl -ki ip:port/api/stats/[query]
 - wlan        -> {"wlan":"up"}
 - all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
                 "hostadp":"up","ipTables":"up","wlan":"up"}
+
 
 curl -ki ip:port/api/list/clients
 - clients     -> { "ip": ip,

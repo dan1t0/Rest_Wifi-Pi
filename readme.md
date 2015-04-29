@@ -1,6 +1,12 @@
 # Rest_Wifi-Pi
 Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (asap).
 
+## Install
+- Clone the repo: `git clone https://github.com/dan1t0/Rest_Wifi-Pi`
+- Enter the folder: `cd Rest_Wifi-Pi``
+- Install the Node dependencies: `npm i`
+- Install external dependencies:
+ - TODO
 
 ## Use
 - Start the server (port 8080 by default): `node server.js [port_listen]`

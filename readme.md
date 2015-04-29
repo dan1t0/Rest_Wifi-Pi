@@ -1,27 +1,54 @@
 # Rest_Wifi-Pi
-
-Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (asap). 
-
-node server.js [port_listen] \(or 8080 by default\)
+Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (asap).
 
 
-curl -ki ip:port/api/stats/[query]
-
-[query]
-- dns         -> {"dns":"up"}
-- dhcp        -> {"dhcp":"up"}
-- ipforward   -> {"ip-forward":"up"}
-- hostadp     -> {"hostadp":"up"}
-- ipTables    -> {"ipTables":"up"}
-- wlan        -> {"wlan":"up"}
-- all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
-                "hostadp":"up","ipTables":"up","wlan":"up"}
+## Use
+- Start the server (port 8080 by default): `node server.js [port_listen]`
+- Make a request:
+ - URL: [ip]:port/api/**[query]**
+ - ie: `curl -ki 127.0.0.1:8080/api/version`
 
 
-curl -ki ip:port/api/list/clients
-- clients     -> { "ip": ip,
-	   "mac": "00:00:00:00:00:00",
-	   "vendor": Product,
-	   "online": false }
+## API
+Supported queries, format:
+- **[query]** -> `response example`
 
-output: json with clients (ip and mac) connected to AP of wlan0 (or other interface) (asap: client online/offline status)
+### version
+Version of the API.
+- GET /api/**version** -> `1.0.0-beta`
+
+### stats
+Information about the system status.
+- GET /api/**stats/[subquery]**
+ - **dns** -> `{ "dns": "up" }`
+ - **dhcp** -> `{ "dhcp": "up" }`
+ - **ipforward** -> `{ "ip-forward": "up" }`
+ - **hostadp** -> `{ "hostadp": "up" }`
+ - **ipTables** -> `{ "ipTables": "up" }`
+ - **wlan** -> `{ "wlan": "up" }`
+ - **all** ->
+ ```
+    {
+        "dns": "up",
+        "dhcp": "up",
+        "ip-forward": "up",
+        "hostadp": "up",
+        "ipTables": "up",
+        "wlan": "up"
+    }
+```
+
+### clients
+Information about the clients connected to the AP.
+- GET /api/**list/clients** ->
+ ```
+    {
+        "ip": ip,
+        "mac": "00:00:00:00:00:00",
+        "vendor": Product,
+        "online": false
+    }
+```
+
+## Issues
+- Client online/offline status

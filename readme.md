@@ -41,7 +41,7 @@ Information about the system status.
 ### clients
 Information about the clients connected to the AP.
 - GET /api/**list/clients** ->
- ```
+```
     {
         "ip": ip,
         "mac": "00:00:00:00:00:00",

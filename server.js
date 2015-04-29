@@ -4,6 +4,8 @@ var url = require('url');
 var getStatus = require('./getStatus');
 var clients = require('./clients');
 
+var PKG_INFO = require('./package.json');
+
 var portlisten = 0;
 
 if (process.argv.length < 3) {
@@ -41,7 +43,12 @@ var server = http.createServer(function (request, response) {
 
         if (paths[1] == "api") {
             // resonse status
-            if (paths[2] === "stats") {
+            if (paths[2] === "version") {
+               response.writeHead(200, {"Content-Type": "application/json"});
+               response.write(JSON.stringify({ version: PKG_INFO.version }, null, 2));
+               response.end();
+               console.log(ip+' - Response with the API version: '+PKG_INFO.version);
+            } else if (paths[2] === "stats") {
                 switch (paths[3]) {
                    case 'dns':
                    {
@@ -125,14 +132,7 @@ var server = http.createServer(function (request, response) {
                        m404(response,ip,path);
                    }
                }
-            } else {
-                if (paths[2] != "list") {
-                    m404(response,ip,path);
-                }
-            }
-
-
-            if (paths[2] === "list") {
+            } else if (paths[2] === "list") {
                 switch (paths[3]) {
                     case 'clients':
                     {
@@ -152,9 +152,7 @@ var server = http.createServer(function (request, response) {
                     }
                 }
             } else {
-                if (paths[2] != "stats") {
-                    m404(response,ip,path);
-                }
+                m404(response,ip,path);
             }
        }  else {
            m404(response,ip,path);

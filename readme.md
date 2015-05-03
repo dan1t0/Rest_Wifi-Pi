@@ -43,6 +43,18 @@ Information about the system status.
         "wlan": "up"
     }
 ```
+- **hoststatus**  ->
+ ```
+    {
+        "hostname": XXX,
+        "uptime": "27 days 4 hours 39 mins",
+        "kernel": "3.18.8+",
+        "ram": { Ram and swap info },
+        "net": [{ info about networks interfaces }, ...],
+        "temp": 52.45,
+        "disk": { disk info }                  
+    }
+```
 
 ### clients
 Information about the clients connected to the AP.

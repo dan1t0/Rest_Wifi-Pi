@@ -43,7 +43,7 @@ Information about the system status.
         "wlan": "up"
     }
 ```
-- **hoststatus**  ->
+ - **hoststatus**  ->
  ```
     {
         "hostname": XXX,

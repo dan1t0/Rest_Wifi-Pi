@@ -3,16 +3,12 @@ var url = require('url');
 
 var getStatus = require('./getStatus');
 var clients = require('./clients');
-
+var data_conf = require('./data_conf');
 var PKG_INFO = require('./package.json');
 
 
-var wlan = "wlan4"; //id wifi interface
-
-var portlisten = 0;
-
 if (process.argv.length < 3) {
-    portlisten = 8080;
+    portlisten = data_conf.portlisten;
 } else {
     portlisten = process.argv[2];
 }
@@ -153,20 +149,20 @@ var server = http.createServer(function (request, response) {
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
-                        clients.getClients("eth0",function(err, rsp){
+                        clients.getClients(data_conf.iwifi_ap,function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
 
                             console.log(ip+' - Response with client list');
                         });
-                        break;;
+                        break;
                     }
 
                     case 'aps':
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
-                        clients.getAps(wlan,function(err, rsp){
+                        clients.getAps(data_conf.iwifi_scan,function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
 
@@ -218,7 +214,7 @@ function m404 (response,ip,path){
                       "ram": { Ram and swap info },
                       "net": [{ info about networks interfaces }, ...],
                       "temp": 52.45,
-                      "disk": { disk info }                  
+                      "disk": { disk info }
       }
 
    /api/list/

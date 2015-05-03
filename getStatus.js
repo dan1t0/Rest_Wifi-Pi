@@ -2,18 +2,17 @@ var fs = require('fs');
 var async = require('async');
 var exec = require('child_process').exec,
     child;
+
 var fs_extra = require("./statfs.js");
+var data_conf = require('./data_conf');
 
 
 
 // get dns status
 function dnsStat(callback) {
    var status = {};
-   //child = exec('ps -e | grep -v grep | grep dnsmasq', {shell:'/bin/bash'},function (error, stdout,stderr) {
    child = exec('ps -e | grep -v grep | grep dnsmasq',function (error) {
 
-      //console.log('stdout: ' + stdout);
-      //console.log('stderr: ' + stderr);
       if (error) {
          status.dns = "down";
       } else {
@@ -28,11 +27,8 @@ function dnsStat(callback) {
 // get dhcp status
 function dhcpStat(callback) {
    var status = {};
-   //child = exec('ps -e | grep -v grep | grep dnsmasq', {shell:'/bin/bash'},function (error, stdout,stderr) {
    child = exec('ps -e | grep -v grep | grep dhcpd',function (error) {
 
-      //console.log('stdout: ' + stdout);
-      //console.log('stderr: ' + stderr);
       if (error) {
          status.dhcp = "down";
       } else {
@@ -47,11 +43,8 @@ function dhcpStat(callback) {
 // get hostapd status
 function hostapdStat(callback) {
    var status = {};
-   //child = exec('ps -e | grep -v grep | grep dnsmasq', {shell:'/bin/bash'},function (error, stdout,stderr) {
    child = exec('ps -e | grep -v grep | grep hostapd',function (error) {
 
-      //console.log('stdout: ' + stdout);
-      //console.log('stderr: ' + stderr);
       if (error) {
          status.hostapd = "down";
       } else {
@@ -66,11 +59,8 @@ function hostapdStat(callback) {
 // get hostapd status
 function wlanStat(callback) {
    var status = {};
-   //child = exec('ps -e | grep -v grep | grep dnsmasq', {shell:'/bin/bash'},function (error, stdout,stderr) {
-   child = exec('/sbin/ifconfig | grep wlan0 | grep -v grep | grep -v "mon."',function (error) {
+   child = exec('/sbin/ifconfig | grep '+data_conf.iwifi_ap+' | grep -v grep | grep -v "mon."',function (error) {
 
-      //console.log('stdout: ' + stdout);
-      //console.log('stderr: ' + stderr);
       if (error) {
          status.wlan = "down";
       } else {
@@ -160,18 +150,7 @@ function allStatus(callback) {
         }
     });
 }
-/*
-   /api?stats=
-      dns         -> {"dns":"up"}
-      dhcp        -> {"dhcp":"up"}
-      ipfwd  -> {"ip-forward":"up"}
-      hostadp     -> {"hostadp":"up"}
-      ipTables    -> {"ipTables":"up"}
-      wlan        -> {"wlan":"up"}
-      all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
-                        "hostadp":"up","ipTables":"up","wlan":"up"}
 
-*/
 
 // GET HOSTNAME
 function readHostname(callback) {
@@ -263,13 +242,13 @@ function getTemperature(callback) {
 
         temp = temp.split("\n")[0];
         //console.log(parseInt(temp.substring(0,4))/100);
-      
+
         temp =(parseInt(temp.substring(0,4))/100);
 
         //console.log(temp);
         callback(null,temp);
       });
-  
+
     } else {
       temp = null;
 
@@ -405,12 +384,9 @@ function getHostStatus(callback) {
             stats.ram = results.ram;
             stats.net = results.net;
             stats.temp = results.temp;
-
             stats.disk = results.disk;
 
-
             // Fill the structure and return it in the callback
-
             stats.disk.disk_percent = (parseFloat((results.disk.disk_used/(results.disk.disk_total*1024))*100).toFixed(2));
 
             stats.ram.ram_used = (results.ram.ram_total - results.ram.ram_available);

@@ -64,11 +64,8 @@ function extractVendor (mac_add,ip_s, callback) {
 
 function getAps(interface,callback) {
    var status = {};
-   //child = exec('ps -e | grep -v grep | grep dnsmasq', {shell:'/bin/bash'},function (error, stdout,stderr) {
    child = exec('iwlist '+interface+' scan',function (error,stdout) {
 
-      //console.log('stdout: ' + stdout);
-      //console.log('stderr: ' + stderr);
       var aps = iwlistParse(stdout);
 
       callback(null, aps);
@@ -77,7 +74,7 @@ function getAps(interface,callback) {
 
 
 
-//add vendor and divide fiel frequency in frequensy and channel
+//add vendor and split field frequency in frequensy and channel
 function iwlistParse(str) {
     var out = str.replace(/^\s+/mg, '');
     out = out.split('\n');

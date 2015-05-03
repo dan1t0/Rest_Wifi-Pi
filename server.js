@@ -6,6 +6,9 @@ var clients = require('./clients');
 
 var PKG_INFO = require('./package.json');
 
+
+var wlan = "wlan4"; //id wifi interface
+
 var portlisten = 0;
 
 if (process.argv.length < 3) {
@@ -23,6 +26,7 @@ var server = http.createServer(function (request, response) {
     if (ip.indexOf(":") === 0 ) {
         ip = request.connection.remoteAddress.split(":")[3];
     }
+
 
     request.on('data', function (chunk) {
         body += chunk;
@@ -126,6 +130,7 @@ var server = http.createServer(function (request, response) {
                        });
                        break;
                    }
+                   
 
                    default:
                    {
@@ -146,6 +151,20 @@ var server = http.createServer(function (request, response) {
                         });
                         break;;
                     }
+
+                    case 'aps':
+                    {
+                        response.writeHead(200, {"Content-Type": "application/json"});
+                        //interface_id in input
+                        clients.getAps(wlan,function(err, rsp){
+                            response.write(JSON.stringify(rsp, null, 2));
+                            response.end();
+
+                            console.log(ip+' - Response with AP list');
+                        });
+                        break;;
+                    }
+
                     default:
                     {
                         m404(response,ip,path);
@@ -188,6 +207,18 @@ function m404 (response,ip,path){
                         "mac": "00:00:00:00:00:00",
                         "vendor": Product,
                         "online": false
-                    }
+                    },...
+
+    /api/list/
+      aps     -> {
+                    "mac": "00:00:00:00:00:00",
+                    "frequency": "2.437 GHz (Channel 6)",
+                    "quality": "68/70",
+                    "signal_level": "-42",
+                    "encryption_key": "on",
+                    "ssid": "APtest",
+                    "bitrates": "24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s",
+                    "mode": "Master"
+                  },...
 
 */

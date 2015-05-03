@@ -130,7 +130,17 @@ var server = http.createServer(function (request, response) {
                        });
                        break;
                    }
-                   
+
+                   case 'hostStatus':
+                   {
+                       response.writeHead(200, {"Content-Type": "application/json"});
+                       getStatus.getHostStatus(function(err, rsp){
+                           response.write(JSON.stringify(rsp, null, 2));
+                           response.end();
+                           console.log(ip+' - Response with host status');
+                       });
+                       break;
+                   }
 
                    default:
                    {
@@ -199,7 +209,17 @@ function m404 (response,ip,path){
       ipTables    -> {"ipTables":"up"}
       wlan        -> {"wlan":"up"}
       all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
-                        "hostadp":"up","ipTables":"up","wlan":"up"}
+                        "hostadp":"up","ipTables":"up","wlan":"up"
+      }
+      hoststatus  -> {
+                      "hostname": XXX,
+                      "uptime": "27 days 4 hours 39 mins",
+                      "kernel": "3.18.8+",
+                      "ram": { Ram and swap info },
+                      "net": [{ info about networks interfaces }, ...],
+                      "temp": 52.45,
+                      "disk": { disk info }                  
+      }
 
    /api/list/
       clients     -> {
@@ -207,18 +227,6 @@ function m404 (response,ip,path){
                         "mac": "00:00:00:00:00:00",
                         "vendor": Product,
                         "online": false
-                    },...
-
-    /api/list/
-      aps     -> {
-                    "mac": "00:00:00:00:00:00",
-                    "frequency": "2.437 GHz (Channel 6)",
-                    "quality": "68/70",
-                    "signal_level": "-42",
-                    "encryption_key": "on",
-                    "ssid": "APtest",
-                    "bitrates": "24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s",
-                    "mode": "Master"
-                  },...
+                    }
 
 */

@@ -7,6 +7,7 @@ Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (
 - Install the Node dependencies: `npm i`
 - Install external dependencies:
  - TODO
+- To develop you also need to have the Grunt client installed globally:`npm i -g grunt-cli`
 
 ## Use
 - Start the server (port 8080 by default): `node server.js [port_listen]`

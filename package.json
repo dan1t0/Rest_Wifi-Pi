@@ -15,10 +15,6 @@
       "web": "https://github.com/dan1t0/Rest_Wifi-Pi/"
     }
   ],
-  "dependencies": {
-    "async": "^0.9.0",
-    "sqlite3": "^3.0.5"
-  },
   "bugs": {
     "url": "https://github.com/dan1t0/Rest_Wifi-Pi/issues"
   },
@@ -27,5 +23,23 @@
       "name": "LGPL-3.0",
       "url": ""
     }
-  ]
+  ],
+  "scripts": {
+	  "start": "node server.js"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "sqlite3": "^3.0.5"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-jscs": "^1.8.0",
+    "grunt-retire": "^0.3.10",
+    "jscs-stylish": "^0.3.1",
+    "jshint-stylish": "^1.0.1",
+    "load-grunt-tasks": "^3.1.0",
+    "retire": "^1.0.1",
+    "time-grunt": "^1.1.1"
+  }
 }

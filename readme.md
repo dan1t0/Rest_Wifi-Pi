@@ -86,7 +86,6 @@ Scan APs availables.
 ```
 
 ## Developer guide
-- Start coding with one of the actual modules similar to the new one as a boilerplate.
 - Use [GitHub pull requests](https://help.github.com/articles/using-pull-requests).
 - Conventions:
  - We use [JSHint](http://jshint.com/) and [Crockford's Styleguide](http://javascript.crockford.com/code.html).

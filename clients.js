@@ -1,9 +1,11 @@
+'use strict';
+
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 
 
 
-function getClients (interface,callback) {
+function getClients (iface,callback) {
     var pending = 0;
 
     fs.readFile("/proc/net/arp", {encoding:'utf8'},function (err, data) {
@@ -16,7 +18,7 @@ function getClients (interface,callback) {
         data = data.split("\n");
 
         for (var i=1; i<data.length-1; i++) {
-            if (data[i].split(" ")[5] == interface) {
+            if (data[i].split(" ")[5] == iface) {
                 var ip_s = data[i].split(" ")[0];
                 var mac_s = data[i].split(" ")[3];
 

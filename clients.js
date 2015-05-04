@@ -2,7 +2,8 @@
 
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
-
+var exec = require('child_process').exec,
+    child;
 
 
 function getClients (iface,callback) {
@@ -62,4 +63,68 @@ function extractVendor (mac_add,ip_s, callback) {
     });
 };
 
+
+function getAps(iface,callback) {
+   var status = {};
+   child = exec('iwlist '+iface+' scan',function (error,stdout) {
+
+      var aps = iwlistParse(stdout);
+
+      callback(null, aps);
+    });
+}
+
+
+
+//add vendor and split field frequency in frequensy and channel
+function iwlistParse(str) {
+    var out = str.replace(/^\s+/mg, '');
+    out = out.split('\n');
+    var cells = [];
+    var line;
+    var info = {};
+    var fields = {
+        'mac' : /^Cell \d+ - Address: (.*)/,
+        'ssid' : /^ESSID:"(.*)"/,
+        'protocol' : /^Protocol:(.*)/,
+        'mode' : /^Mode:(.*)/,
+        'frequency' : /^Frequency:(.*)/,
+        'encryption_key' : /Encryption key:(.*)/,
+        'bitrates' : /Bit Rates:(.*)/,
+        'quality' : /Quality(?:=|\:)([^\s]+)/,
+        'signal_level' : /Signal level(?:=|\:)([^\s]+)/
+    };
+
+    for (var i=0,l=out.length; i<l; i++) {
+        line = out[i].trim();
+
+        if (!line.length) {
+            continue;
+        }
+        if (line.match("Scan completed :$")) {
+            continue;
+        }
+        if (line.match("Interface doesn't support scanning.$")) {
+            continue;
+        }
+
+        if (line.match(fields.mac)) {
+            cells.push(info);
+            info = {};
+        }
+
+        for (var field in fields) {
+            if (line.match(fields[field])) {
+                info[field] = (fields[field].exec(line)[1]).trim();
+            }
+        }
+    }
+    cells.push(info);
+    //console.log(cells);
+    return cells;
+}
+
+
+
+module.exports.getAps = getAps;
 module.exports.getClients = getClients;

@@ -5,13 +5,12 @@ var url = require('url');
 
 var getStatus = require('./getStatus');
 var clients = require('./clients');
-
+var data_conf = require('./data_conf');
 var PKG_INFO = require('./package.json');
-
-var portlisten = 0;
+var portlisten;
 
 if (process.argv.length < 3) {
-    portlisten = 8080;
+    portlisten = data_conf.portlisten;
 } else {
     portlisten = process.argv[2];
 }
@@ -25,6 +24,7 @@ var server = http.createServer(function (request, response) {
     if (ip.indexOf(":") === 0 ) {
         ip = request.connection.remoteAddress.split(":")[3];
     }
+
 
     request.on('data', function (chunk) {
         body += chunk;
@@ -129,6 +129,17 @@ var server = http.createServer(function (request, response) {
                        break;
                    }
 
+                   case 'hostStatus':
+                   {
+                       response.writeHead(200, {"Content-Type": "application/json"});
+                       getStatus.getHostStatus(function(err, rsp){
+                           response.write(JSON.stringify(rsp, null, 2));
+                           response.end();
+                           console.log(ip+' - Response with host status');
+                       });
+                       break;
+                   }
+
                    default:
                    {
                        m404(response,ip,path);
@@ -140,14 +151,28 @@ var server = http.createServer(function (request, response) {
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
-                        clients.getClients("eth0",function(err, rsp){
+                        clients.getClients(data_conf.iwifi_ap,function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
 
                             console.log(ip+' - Response with client list');
                         });
+                        break;
+                    }
+
+                    case 'aps':
+                    {
+                        response.writeHead(200, {"Content-Type": "application/json"});
+                        //interface_id in input
+                        clients.getAps(data_conf.iwifi_scan,function(err, rsp){
+                            response.write(JSON.stringify(rsp, null, 2));
+                            response.end();
+
+                            console.log(ip+' - Response with AP list');
+                        });
                         break;;
                     }
+
                     default:
                     {
                         m404(response,ip,path);
@@ -182,7 +207,17 @@ function m404 (response,ip,path){
       ipTables    -> {"ipTables":"up"}
       wlan        -> {"wlan":"up"}
       all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
-                        "hostadp":"up","ipTables":"up","wlan":"up"}
+                        "hostadp":"up","ipTables":"up","wlan":"up"
+      }
+      hoststatus  -> {
+                      "hostname": XXX,
+                      "uptime": "27 days 4 hours 39 mins",
+                      "kernel": "3.18.8+",
+                      "ram": { Ram and swap info },
+                      "net": [{ info about networks interfaces }, ...],
+                      "temp": 52.45,
+                      "disk": { disk info }
+      }
 
    /api/list/
       clients     -> {

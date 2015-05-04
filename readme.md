@@ -85,5 +85,15 @@ Scan APs availables.
     }
 ```
 
+## Developer guide
+- Start coding with one of the actual modules similar to the new one as a boilerplate.
+- Use [GitHub pull requests](https://help.github.com/articles/using-pull-requests).
+- Conventions:
+ - We use [JSHint](http://jshint.com/) and [Crockford's Styleguide](http://javascript.crockford.com/code.html).
+ - Please run `grunt contribute` to be sure your code fits with them.
+
 ## Issues
-- Client online/offline status
+- https://github.com/dan1t0/Rest_Wifi-Pi/issues
+
+## Contributors
+- https://github.com/dan1t0/Rest_Wifi-Pi/graphs/contributors

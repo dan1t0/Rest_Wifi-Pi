@@ -46,22 +46,29 @@ function getClients (iface,callback) {
 
 
 function extractVendor (mac_add,ip_s, callback) {
-
-    var db = new sqlite3.Database('mac_vendors.sqlite');
-
+    // TODO: We should use only one database with different tables, read it at
+    // the start and close it at the end
+    var db = new sqlite3.Database('artifacts/databases/mac_vendors.sqlite');
     //managed the mac
     var mac_split = mac_add.split(":");
     var mac = (mac_split[0]+mac_split[1]+mac_split[2]).toUpperCase();
-
     //mac hex to dec
     mac = parseInt(mac, 16);
 
-    db.each("select * from OUI where macPrefix = '"+mac+".0'", function(err, row) {
-      var vendor = row.vendor;
+    var stmt = db.prepare("select * from OUI where macPrefix = '"+mac+".0'");
+    stmt.get(function (err, row) {
+        if (err) {
+            console.log('ERROR: extractVendor');
+            console.log(err);
 
-      callback(null,vendor,mac_add,ip_s);
+            // TODO: Error management
+    //            return;
+        }
+        var vendor = row.vendor;
+        stmt.finalize();
+        callback(null,vendor,mac_add,ip_s);
     });
-};
+}
 
 
 function getAps(iface,callback) {

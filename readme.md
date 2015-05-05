@@ -86,6 +86,7 @@ Scan APs availables.
 ```
 
 ## Developer guide
+- Create a branch with a name including your user and a meaningful word about the fix/feature you're going to implement, ie: "jesusperez/fixdbstatements"
 - Use [GitHub pull requests](https://help.github.com/articles/using-pull-requests).
 - Conventions:
  - We use [JSHint](http://jshint.com/) and [Crockford's Styleguide](http://javascript.crockford.com/code.html).

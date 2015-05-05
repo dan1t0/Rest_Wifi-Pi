@@ -30,7 +30,7 @@ Information about the system status.
  - **dns** -> `{ "dns": "up" }`
  - **dhcp** -> `{ "dhcp": "up" }`
  - **ipforward** -> `{ "ip-forward": "up" }`
- - **hostadp** -> `{ "hostapd": "up" }`
+ - **hostapd** -> `{ "hostapd": "up" }`
  - **iptables** -> `{ "iptables": "up" }`
  - **wlan** -> `{ "wlan": "up" }`
  - **all** ->

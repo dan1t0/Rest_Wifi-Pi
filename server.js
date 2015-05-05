@@ -87,7 +87,7 @@ var server = http.createServer(function (request, response) {
                        break;
                    }
 
-                   case 'hostadp':
+                   case 'hostapd':
                    {
                        response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.hostapdStat(function(err, rsp){
@@ -131,7 +131,7 @@ var server = http.createServer(function (request, response) {
                        break;
                    }
 
-                   case 'hostStatus':
+                   case 'hoststatus':
                    {
                        response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.getHostStatus(function(err, rsp){

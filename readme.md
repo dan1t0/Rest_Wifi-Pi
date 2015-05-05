@@ -22,7 +22,7 @@ Supported queries, format:
 
 ### version
 Version of the API.
-- GET /api/**version** -> `1.0.0-beta`
+- GET /api/**version** -> `0.0.1`
 
 ### stats
 Information about the system status.

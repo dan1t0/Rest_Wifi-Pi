@@ -5,14 +5,16 @@ var url = require('url');
 
 var getStatus = require('./getStatus');
 var clients = require('./clients');
-var data_conf = require('./data_conf');
+
 var PKG_INFO = require('./package.json');
-var portlisten;
+var GLOBAL_CFG = require('./config');
+
+var portListen;
 
 if (process.argv.length < 3) {
-    portlisten = data_conf.portlisten;
+    portListen = GLOBAL_CFG.server.port;
 } else {
-    portlisten = process.argv[2];
+    portListen = process.argv[2];
 }
 
 
@@ -151,7 +153,7 @@ var server = http.createServer(function (request, response) {
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
-                        clients.getClients(data_conf.iwifi_ap,function(err, rsp){
+                        clients.getClients(GLOBAL_CFG.ifaces.ap,function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
 
@@ -164,7 +166,7 @@ var server = http.createServer(function (request, response) {
                     {
                         response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
-                        clients.getAps(data_conf.iwifi_scan,function(err, rsp){
+                        clients.getAps(GLOBAL_CFG.ifaces.scan,function(err, rsp){
                             response.write(JSON.stringify(rsp, null, 2));
                             response.end();
 
@@ -186,10 +188,10 @@ var server = http.createServer(function (request, response) {
        }
     });
 });
-server.listen(portlisten);
+server.listen(portListen);
 
 console.log("Server is listening in http://localhost:"+
-    portlisten+ " with PID "+ process.pid);
+    portListen+ " with PID "+ process.pid);
 
 
 

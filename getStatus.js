@@ -2,12 +2,13 @@
 
 var fs = require('fs');
 var async = require('async');
-var exec = require('child_process').exec,
-    child;
+var exec = require('child_process').exec;
 
 var fs_extra = require("./statfs.js");
-var data_conf = require('./data_conf');
 
+var GLOBAL_CFG = require('./config');
+
+var child;
 
 
 // get dns status
@@ -61,7 +62,7 @@ function hostapdStat(callback) {
 // get hostapd status
 function wlanStat(callback) {
    var status = {};
-   child = exec('/sbin/ifconfig | grep '+data_conf.iwifi_ap+' | grep -v grep | grep -v "mon."',function (error) {
+   child = exec('/sbin/ifconfig | grep '+GLOBAL_CFG.ifaces.ap+' | grep -v grep | grep -v "mon."',function (error) {
 
       if (error) {
          status.wlan = "down";

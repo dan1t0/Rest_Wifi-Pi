@@ -46,7 +46,7 @@ function getClients (iface,callback) {
 
 
 function extractVendor (mac_add,ip_s, callback) {
-    var db = new sqlite3.Database('artifacts/db/raspwifipi.sqlite');
+    var db = new sqlite3.Database(GLOBAL_CFG.db.file);
     //managed the mac
     var mac_split = mac_add.split(":");
     var mac = (mac_split[0]+mac_split[1]+mac_split[2]).toUpperCase();

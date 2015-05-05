@@ -1,0 +1,12 @@
+{
+    "db": {
+        "file": "artifacts/db/raspwifipi.sqlite"
+    },
+    "server": {
+        "port": 8080
+    },
+    "ifaces": {
+        "scan": "wlan4",
+        "ap": "wlan4"
+    }
+}

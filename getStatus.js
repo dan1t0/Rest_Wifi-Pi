@@ -79,6 +79,14 @@ function wlanStat(callback) {
 function ipfowardStat(callback) {
     var status = {};
     fs.readFile('/proc/sys/net/ipv4/ip_forward', {encoding:'utf8'},function (err, data) {
+        if (err) {
+            callback({
+                message: 'getStatus.js: ipfowardStat:',
+                error: err
+            });
+
+            return;
+        }
 
         //console.log(data);
         data = data.split("\n")[0];
@@ -115,8 +123,6 @@ function iptablesStat(callback) {
 }
 
 
-
-
 //get all the status
 function allStatus(callback) {
     async.parallel({
@@ -127,12 +133,14 @@ function allStatus(callback) {
         ipTables: iptablesStat,
         wlan: wlanStat
     }, function (err, results) {
-        if (err) {
-            console.log("Error al ejecutar la serie");
-            callback(true, results);
-        } else {
-            var status = {};
+        var status = {};
 
+        if (err) {
+            callback({
+                message: 'getStatus.js: allStatus:',
+                error: err
+            });
+        } else {
             /* //only to debug
             console.log("dns: "+results.dns.dns);
             console.log("dhcp: "+results.dhcp.dhcp);
@@ -158,8 +166,14 @@ function allStatus(callback) {
 // GET HOSTNAME
 function readHostname(callback) {
     fs.readFile('/proc/sys/kernel/hostname', { encoding: 'utf-8' }, function (err, hostn) {
-        if (err)
-            callback(true, "Error reading hostname");
+        if (err) {
+            callback({
+                message: 'getStatus.js: readHostname:',
+                error: err
+            });
+
+            return;
+        }
 
         callback(null, hostn.replace('\n', ''));
     });
@@ -169,19 +183,31 @@ function readHostname(callback) {
 // GET UPTIME
 function readUptime(callback) {
     fs.readFile('/proc/uptime', { encoding: 'utf-8' }, function (err, uptime) {
-        if (err)
-            callback(true, "Error reading uptime");
+        var lines;
 
-        var lines = uptime.split('\n');
+        if (err) {
+            callback({
+                message: 'getStatus.js: readUptime',
+                error: err
+            });
+
+            return;
+        }
+
+        lines = uptime.split('\n');
         lines.forEach(function (data) {
             var line = data.split(' ');
 
             if (line != '' ) {
                 callback(null, uptimeString(line[0]));
-            }
-        });
 
-        //callback(true, "Uptime info not found");
+                return;
+            }
+            callback({
+                message: 'getStatus.js: readUptime: Not found',
+                error: err
+            });
+        });
     });
 }
 
@@ -216,8 +242,14 @@ function uptimeString(time) {
 // GET KERNEL
 function readKernel(callback) {
     fs.readFile('/proc/sys/kernel/osrelease', { encoding: 'utf-8' }, function (err, kernel) {
-        if (err)
-            callback(true, "Error reading kernel");
+        if (err) {
+            callback({
+                message: 'getStatus.js: readKernel:',
+                error: err
+            });
+
+            return;
+        }
 
         callback(null, kernel.replace('\n', ''));
     });
@@ -225,53 +257,41 @@ function readKernel(callback) {
 
 
 function getTemperature(callback) {
-  var match = "rpi";
-  var isRpi = false;
+    fs.readFile('/sys/class/thermal/thermal_zone0/temp', {encoding:'utf8'},function (err, temp) {
+        if (err) {
+            callback({
+                message: 'getStatus.js: getTemperature:',
+                error: err
+            });
 
-  fs.readdir("/boot", function(err,list){
-    if (err) throw err;
-
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].search(match) != -1 )
-      {
-        isRpi = true;
-        break;
-      }
-    }
-
-    if (isRpi) {
-
-      fs.readFile('/sys/class/thermal/thermal_zone0/temp', {encoding:'utf8'},function (err, temp) {
+            return;
+        }
 
         temp = temp.split("\n")[0];
         //console.log(parseInt(temp.substring(0,4))/100);
-
         temp =(parseInt(temp.substring(0,4))/100);
-
         //console.log(temp);
-        callback(null,temp);
-      });
-
-    } else {
-      temp = null;
-
-      //console.log(temp);
-        callback(null,temp);
-    }
-
-  });
+        callback(null, temp);
+    });
 }
 
 
 // GET RAM INFO
 function readRam(callback) {
     fs.readFile('/proc/meminfo', { encoding: 'utf-8' }, function (err, ram) {
-        if (err)
-            callback(true, "Error reading meminfo");
+        var ramData = {},
+            lines;
 
-        var ramData = {};
+        if (err) {
+            callback({
+                message: 'getStatus.js: readRam:',
+                error: err
+            });
 
-        var lines = ram.split('\n');
+            return;
+        }
+
+        lines = ram.split('\n');
         lines.forEach(function (data) {
             /* Remove multiple spaces with just one */
             var line = data.replace(/ +(?= )/g,'');
@@ -330,11 +350,19 @@ function readDisk(callback) {
 // GET NETWORK INFO
 function readNet(callback) {
     fs.readFile('/proc/net/dev', { encoding: 'utf-8' }, function (err, netinf) {
-        if (err)
-            callback(true, "Error reading net info");
+        var net_info = [],
+            lines;
 
-        var net_info = [];
-        var lines = netinf.split('\n');
+        if (err) {
+            callback({
+                message: 'getStatus.js: readNet:',
+                error: err
+            });
+
+            return;
+        }
+
+        lines = netinf.split('\n');
         lines.forEach(function (data) {
             var line = data.replace(/ +/g,' ');
             line = line.split(' ');
@@ -364,22 +392,28 @@ function readNet(callback) {
 
 
 function getHostStatus(callback) {
-    async.parallel({
-        hostname: readHostname,
-        uptime: readUptime,
-        kernel: readKernel,
-        ram: readRam,
-        net: readNet,
-        disk: readDisk,
-        temp: getTemperature
-    }, function (err, results) {
-        if (err) {
-            console.log("Error al ejecutar la serie");
-            callback(true, results);
-
-        } else {
-
+    async.parallel(
+        {
+            hostname: readHostname,
+            uptime: readUptime,
+            kernel: readKernel,
+            ram: readRam,
+            net: readNet,
+            disk: readDisk,
+            temp: getTemperature
+        },
+        function (err, results) {
             var stats = {};
+
+            if (err) {
+                callback({
+                    message: 'getStatus.js: getHostStatus: async',
+                    // TODO: More verbose error
+                    error: err
+                });
+
+                return;
+            }
 
             stats.hostname = results.hostname;
             stats.uptime = results.uptime;
@@ -401,7 +435,7 @@ function getHostStatus(callback) {
 
             callback(null, stats);
         }
-    });
+    );
 }
 
 

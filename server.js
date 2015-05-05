@@ -11,13 +11,35 @@ var GLOBAL_CFG = require('./config');
 
 var portListen;
 
+
+// Helpers
+
+function makeResponse(err, res, resObj, ipadd, description) {
+    resObj.writeHead(200, {
+        "Content-Type": "application/json"
+    });
+    resObj.write(JSON.stringify(err || res, null, 2));
+    resObj.end();
+    console.log(ipadd + ' - Response with ' + description);
+    console.log(err || res);
+}
+
+function m404(response, ip, path) {
+    response.writeHead(404, {
+        "Content-Type": 'application/json'
+    });
+    response.end();
+    console.log(ip + ' - ' + path + ' 404 Not Found');
+}
+
+
+// Starting here
+
 if (process.argv.length < 3) {
     portListen = GLOBAL_CFG.server.port;
 } else {
     portListen = process.argv[2];
 }
-
-
 
 var server = http.createServer(function (request, response) {
 
@@ -51,93 +73,69 @@ var server = http.createServer(function (request, response) {
                response.writeHead(200, {"Content-Type": "application/json"});
                response.write(JSON.stringify({ version: PKG_INFO.version }, null, 2));
                response.end();
-               console.log(ip+' - Response with the API version: '+PKG_INFO.version);
+               console.log(ip + ' - Response with the API version: ' + PKG_INFO.version);
             } else if (paths[2] === "stats") {
                 switch (paths[3]) {
                    case 'dns':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.dnsStat(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end();
-                           console.log(ip+' - Response with dns stats: '+rsp.dns);
+                           makeResponse(err, rsp, response, ip, 'dns stats');
                        });
                        break;
                    }
 
                    case 'dhcp':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.dhcpStat(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end();
-                           console.log(ip+' - Response with dhcp stats: '+rsp.dhcp);
+                           makeResponse(err, rsp, response, ip, 'dhcp stats');
                        });
                        break;
                    }
 
                    case 'ipforward':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.ipfowardStat(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end()
-                           console.log(ip+' - Response with ipforward stats: '+rsp.ipfwd);
+                           makeResponse(err, rsp, response, ip, 'ipforward stats');
                        });
                        break;
                    }
 
                    case 'hostapd':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.hostapdStat(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end();
-                           console.log(ip+' - Response with hostapd stats: '+rsp.hostapd);
+                           makeResponse(err, rsp, response, ip, 'hostapd stats');
                        });
                        break;
                    }
 
                    case 'iptables':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.iptablesStat(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end()
-                           console.log(ip+' - Response with iptables stats: '+rsp.iptables);
+                           makeResponse(err, rsp, response, ip, 'iptables stats');
                        });
                        break;
                    }
 
                    case 'wlan':
                    {
-                      response.writeHead(200, {"Content-Type": "application/json"});
                       getStatus.wlanStat(function(err, rsp){
-                          response.write(JSON.stringify(rsp, null, 2));
-                          response.end();
-                          console.log(ip+' - Response with wlan stats: '+rsp.wlan);
+                          makeResponse(err, rsp, response, ip, 'wlan stats');
                       });
                       break;
                    }
 
                    case 'all':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.allStatus(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end();
-                           console.log(ip+' - Response with all status');
+                           makeResponse(err, rsp, response, ip, 'all stats');
                        });
                        break;
                    }
 
                    case 'hoststatus':
                    {
-                       response.writeHead(200, {"Content-Type": "application/json"});
                        getStatus.getHostStatus(function(err, rsp){
-                           response.write(JSON.stringify(rsp, null, 2));
-                           response.end();
-                           console.log(ip+' - Response with host status');
+                           makeResponse(err, rsp, response, ip, 'hoststatus stats');
                        });
                        break;
                    }
@@ -151,26 +149,18 @@ var server = http.createServer(function (request, response) {
                 switch (paths[3]) {
                     case 'clients':
                     {
-                        response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
                         clients.getClients(GLOBAL_CFG.ifaces.ap,function(err, rsp){
-                            response.write(JSON.stringify(rsp, null, 2));
-                            response.end();
-
-                            console.log(ip+' - Response with client list');
+                            makeResponse(err, rsp, response, ip, 'client list');
                         });
                         break;
                     }
 
                     case 'aps':
                     {
-                        response.writeHead(200, {"Content-Type": "application/json"});
                         //interface_id in input
                         clients.getAps(GLOBAL_CFG.ifaces.scan,function(err, rsp){
-                            response.write(JSON.stringify(rsp, null, 2));
-                            response.end();
-
-                            console.log(ip+' - Response with AP list');
+                            makeResponse(err, rsp, response, ip, 'aps list');
                         });
                         break;;
                     }
@@ -188,45 +178,8 @@ var server = http.createServer(function (request, response) {
        }
     });
 });
+
+// Starting the server
 server.listen(portListen);
-
-console.log("Server is listening in http://localhost:"+
-    portListen+ " with PID "+ process.pid);
-
-
-
-function m404 (response,ip,path){
-    response.writeHead(404, {"Content-Type": "application/json"});
-    response.end();
-    console.log(ip+" - "+path+" 404 Not Found");
-}
-/*
-   /api/stats/
-      dns         -> {"dns":"up"}
-      dhcp        -> {"dhcp":"up"}
-      ipforward   -> {"ip-forward":"up"}
-      hostadp     -> {"hostadp":"up"}
-      ipTables    -> {"ipTables":"up"}
-      wlan        -> {"wlan":"up"}
-      all         -> {"dns":"up","dhcp":"up","ip-forward":"up",
-                        "hostadp":"up","ipTables":"up","wlan":"up"
-      }
-      hoststatus  -> {
-                      "hostname": XXX,
-                      "uptime": "27 days 4 hours 39 mins",
-                      "kernel": "3.18.8+",
-                      "ram": { Ram and swap info },
-                      "net": [{ info about networks interfaces }, ...],
-                      "temp": 52.45,
-                      "disk": { disk info }
-      }
-
-   /api/list/
-      clients     -> {
-                        "ip": ip,
-                        "mac": "00:00:00:00:00:00",
-                        "vendor": Product,
-                        "online": false
-                    }
-
-*/
+console.log( 'Server is listening in http://localhost:' +
+            portListen + 'with PID ' + process.pid);

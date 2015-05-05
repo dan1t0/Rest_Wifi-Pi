@@ -3,6 +3,7 @@
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var exec = require('child_process').exec,
+
     child;
 
 
@@ -10,10 +11,18 @@ function getClients (iface,callback) {
     var pending = 0;
 
     fs.readFile("/proc/net/arp", {encoding:'utf8'},function (err, data) {
-
-        var clients ={
+        var clients = {
             list: []
         };
+
+        if (err) {
+            callback({
+                message: 'client.js: getClients: readFile',
+                error: err
+            });
+
+            return;
+        }
 
         data = data.replace(/\s{2,}/g, ' ');
         data = data.split("\n");
@@ -25,7 +34,14 @@ function getClients (iface,callback) {
 
                 pending++;
                 extractVendor(mac_s,ip_s,function(err,vendor_s,mac_s,ip_s){
+                    if (err) {
+                        callback({
+                            message: 'client.js: getClients: extractVendor',
+                            error: err
+                        });
 
+                        return;
+                    }
                     clients.list.push({
                         ip: ip_s,
                         mac: mac_s,
@@ -41,11 +57,10 @@ function getClients (iface,callback) {
         }
         //callback(null, clients);
       });
-
 }
 
 
-function extractVendor (mac_add,ip_s, callback) {
+function extractVendor(mac_add, ip_s, callback) {
     var db = new sqlite3.Database(GLOBAL_CFG.db.file);
     //managed the mac
     var mac_split = mac_add.split(":");
@@ -55,11 +70,12 @@ function extractVendor (mac_add,ip_s, callback) {
 
     var stmt = db.prepare("select * from oui where macPrefix = ?", mac, function (err) {
         if (err) {
-            console.log('ERROR: db.prepare');
-            console.log(err);
+            callback({
+                message: 'client.js: extractVendor: db.prepare',
+                error: err
+            });
 
-            // TODO: Error management
-//            return;
+            return;
         }
         stmt.get(function (err, row) {
             if (err) {
@@ -74,16 +90,23 @@ function extractVendor (mac_add,ip_s, callback) {
             callback(null, row.vendor,mac_add,ip_s);
         });
     });
-};
+}
 
 
-function getAps(iface,callback) {
-   var status = {};
-   child = exec('iwlist '+iface+' scan',function (error,stdout) {
+function getAps(iface, callback) {
+    var status = {};
 
-      var aps = iwlistParse(stdout);
+    child = exec('iwlist '+iface+' scan',function (error,stdout) {
+        if (error) {
+            callback({
+                message: 'client.js: getAps: exec',
+                error: error
+            });
 
-      callback(null, aps);
+            return;
+        }
+
+        callback(null, iwlistParse(stdout));
     });
 }
 

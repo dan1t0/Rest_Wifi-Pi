@@ -46,9 +46,7 @@ function getClients (iface,callback) {
 
 
 function extractVendor (mac_add,ip_s, callback) {
-    // TODO: Maybe we should use only one database with different tables,
-    // read it at the start and close it at the end
-    var db = new sqlite3.Database('artifacts/databases/mac_vendors.sqlite');
+    var db = new sqlite3.Database('artifacts/db/raspwifipi.sqlite');
     //managed the mac
     var mac_split = mac_add.split(":");
     var mac = (mac_split[0]+mac_split[1]+mac_split[2]).toUpperCase();

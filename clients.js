@@ -110,9 +110,6 @@ function getAps(iface, callback) {
     });
 }
 
-
-
-//add vendor and split field frequency in frequensy and channel
 function iwlistParse(str) {
     var out = str.replace(/^\s+/mg, '');
     out = out.split('\n');
@@ -124,7 +121,8 @@ function iwlistParse(str) {
         'ssid' : /^ESSID:"(.*)"/,
         'protocol' : /^Protocol:(.*)/,
         'mode' : /^Mode:(.*)/,
-        'frequency' : /^Frequency:(.*)/,
+        'frequency' : /^Frequency:(.*) \(Channel/,
+        'channel' : /\(Channel (.*)\)/,
         'encryption_key' : /Encryption key:(.*)/,
         'bitrates' : /Bit Rates:(.*)/,
         'quality' : /Quality(?:=|\:)([^\s]+)/,
@@ -154,13 +152,12 @@ function iwlistParse(str) {
                 info[field] = (fields[field].exec(line)[1]).trim();
             }
         }
+        info['vendor'] = '';
     }
     cells.push(info);
     //console.log(cells);
     return cells;
 }
-
-
 
 module.exports.getAps = getAps;
 module.exports.getClients = getClients;

@@ -8,6 +8,12 @@
     "api",
     "wifi"
   ],
+  "repository" : [
+    {
+      "type" : "git",
+      "url" : "http://github.com/npm/npm.git"
+    }
+  ],
   "maintainers": [
     {
       "name": "Dani Martinez - @dan1t0",

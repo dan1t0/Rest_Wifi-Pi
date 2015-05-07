@@ -226,6 +226,7 @@ function readKernel(callback) {
 function getTemperature(callback) {
   var match = "rpi";
   var isRpi = false;
+  var temp = "";
 
   fs.readdir("/boot", function(err,list){
     if (err) throw err;

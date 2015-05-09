@@ -5,57 +5,37 @@ var url = require('url');
 
 var getStatus = require('./getStatus');
 var clients = require('./clients');
+var helpers = require('./helpers');
 
 var PKG_INFO = require('./package.json');
 var GLOBAL_CFG = require('./config');
 
 var portListen;
-
-
-// Helpers
-
-function makeResponse(err, res, resObj, ipadd, description) {
-    resObj.writeHead(200, {
-        "Content-Type": "application/json"
-    });
-    resObj.write(JSON.stringify(err || res, null, 2));
-    resObj.end();
-    console.log(ipadd + ' - Response with ' + description);
-    console.log(err || res);
-}
-
-function m404(response, ip, path) {
-    response.writeHead(404, {
-        "Content-Type": 'application/json'
-    });
-    response.end();
-    console.log(ip + ' - ' + path + ' 404 Not Found');
-}
+var body;
 
 
 // Starting here
-
 if (process.argv.length < 3) {
     portListen = GLOBAL_CFG.server.port;
 } else {
     portListen = process.argv[2];
 }
 
-var server = http.createServer(function (request, response) {
 
+var server = http.createServer(function (request, response) {
     //extract ip and remove ipv6 address
     var ip = request.connection.remoteAddress;
-    if (ip.indexOf(":") === 0 ) {
-        ip = request.connection.remoteAddress.split(":")[3];
+    if (ip.indexOf(':') === 0 ) {
+        ip = request.connection.remoteAddress.split(':')[3];
     }
 
 
-    request.on('data', function (chunk) {
+    request.on('data', function(chunk) {
         body += chunk;
-    })
+    });
 
-    request.on('end', function () {
-        response.writeHead(200, {"Content-Type": "application/json"});
+    request.on('end', function() {
+        response.writeHead(200, {'Content-Type': 'application/json'});
 
         //extract path and method from URL
         var clientReq = url.parse(request.url);
@@ -63,23 +43,23 @@ var server = http.createServer(function (request, response) {
         //console.log("-> "+path);
 
         //console.log("path: "+path);
-        var paths = path.split("/");
+        var paths = path.split('/');
         //console.log("ruta: "+paths[1]);
 
 
-        if (paths[1] == "api") {
+        if (paths[1] === 'api') {
             // resonse status
-            if (paths[2] === "version") {
-               response.writeHead(200, {"Content-Type": "application/json"});
+            if (paths[2] === 'version') {
+               response.writeHead(200, {'Content-Type': 'application/json'});
                response.write(JSON.stringify({ version: PKG_INFO.version }, null, 2));
                response.end();
                console.log(ip + ' - Response with the API version: ' + PKG_INFO.version);
-            } else if (paths[2] === "stats") {
+            } else if (paths[2] === 'stats') {
                 switch (paths[3]) {
                    case 'dns':
                    {
                        getStatus.dnsStat(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'dns stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'dns stats');
                        });
                        break;
                    }
@@ -87,7 +67,7 @@ var server = http.createServer(function (request, response) {
                    case 'dhcp':
                    {
                        getStatus.dhcpStat(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'dhcp stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'dhcp stats');
                        });
                        break;
                    }
@@ -95,7 +75,7 @@ var server = http.createServer(function (request, response) {
                    case 'ipforward':
                    {
                        getStatus.ipfowardStat(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'ipforward stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'ipforward stats');
                        });
                        break;
                    }
@@ -103,7 +83,7 @@ var server = http.createServer(function (request, response) {
                    case 'hostapd':
                    {
                        getStatus.hostapdStat(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'hostapd stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'hostapd stats');
                        });
                        break;
                    }
@@ -111,7 +91,7 @@ var server = http.createServer(function (request, response) {
                    case 'iptables':
                    {
                        getStatus.iptablesStat(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'iptables stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'iptables stats');
                        });
                        break;
                    }
@@ -119,7 +99,7 @@ var server = http.createServer(function (request, response) {
                    case 'wlan':
                    {
                       getStatus.wlanStat(function(err, rsp){
-                          makeResponse(err, rsp, response, ip, 'wlan stats');
+                          helpers.makeResponse(err, rsp, response, ip, 'wlan stats');
                       });
                       break;
                    }
@@ -127,7 +107,7 @@ var server = http.createServer(function (request, response) {
                    case 'all':
                    {
                        getStatus.allStatus(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'all stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'all stats');
                        });
                        break;
                    }
@@ -135,23 +115,23 @@ var server = http.createServer(function (request, response) {
                    case 'hoststatus':
                    {
                        getStatus.getHostStatus(function(err, rsp){
-                           makeResponse(err, rsp, response, ip, 'hoststatus stats');
+                           helpers.makeResponse(err, rsp, response, ip, 'hoststatus stats');
                        });
                        break;
                    }
 
                    default:
                    {
-                       m404(response,ip,path);
+                       helpers.m404(response,ip,path);
                    }
                }
-            } else if (paths[2] === "list") {
+            } else if (paths[2] === 'list') {
                 switch (paths[3]) {
                     case 'clients':
                     {
                         //interface_id in input
                         clients.getClients(GLOBAL_CFG.ifaces.ap,function(err, rsp){
-                            makeResponse(err, rsp, response, ip, 'client list');
+                            helpers.makeResponse(err, rsp, response, ip, 'client list');
                         });
                         break;
                     }
@@ -160,21 +140,24 @@ var server = http.createServer(function (request, response) {
                     {
                         //interface_id in input
                         clients.getAps(GLOBAL_CFG.ifaces.scan,function(err, rsp){
-                            makeResponse(err, rsp, response, ip, 'aps list');
+                            helpers.makeResponse(err, rsp, response, ip, 'aps list');
                         });
-                        break;;
+                        break;
                     }
 
                     default:
                     {
-                        m404(response,ip,path);
+                        helpers.m404(response,ip,path);
                     }
                 }
+            } else if (paths[2] === 'help') {
+                helpers.help(response,ip);
+
             } else {
-                m404(response,ip,path);
+                helpers.m404(response,ip,path);
             }
        }  else {
-           m404(response,ip,path);
+           helpers.m404(response,ip,path);
        }
     });
 });

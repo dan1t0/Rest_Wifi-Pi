@@ -67,3 +67,7 @@ Scan APs availables.
         "mode": "Master"
     }
 ```
+
+## help
+Print the app's help.
+- GET /api/**help**

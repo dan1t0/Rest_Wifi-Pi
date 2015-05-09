@@ -4,11 +4,11 @@ var fs = require('fs');
 var async = require('async');
 var exec = require('child_process').exec;
 
-var fs_extra = require("./statfs.js");
-
+var fs_extra = require('./statfs.js');
 var GLOBAL_CFG = require('./config');
 
 var child;
+
 
 
 // get dns status
@@ -17,14 +17,15 @@ function dnsStat(callback) {
    child = exec('ps -e | grep -v grep | grep dnsmasq',function (error) {
 
       if (error) {
-         status.dns = "down";
+         status.dns = 'down';
       } else {
-         status.dns = "up";
+         status.dns = 'up';
       }
 
       callback(null, status);
     });
 }
+
 
 
 // get dhcp status
@@ -33,14 +34,15 @@ function dhcpStat(callback) {
    child = exec('ps -e | grep -v grep | grep dhcpd',function (error) {
 
       if (error) {
-         status.dhcp = "down";
+         status.dhcp = 'down';
       } else {
-         status.dhcp = "up";
+         status.dhcp = 'up';
       }
 
       callback(null, status);
     });
 }
+
 
 
 // get hostapd status
@@ -49,14 +51,15 @@ function hostapdStat(callback) {
    child = exec('ps -e | grep -v grep | grep hostapd',function (error) {
 
       if (error) {
-         status.hostapd = "down";
+         status.hostapd = 'down';
       } else {
-         status.hostapd = "up";
+         status.hostapd = 'up';
       }
 
       callback(null, status);
     });
 }
+
 
 
 // get hostapd status
@@ -65,14 +68,15 @@ function wlanStat(callback) {
    child = exec('/sbin/ifconfig | grep '+GLOBAL_CFG.ifaces.ap+' | grep -v grep | grep -v "mon."',function (error) {
 
       if (error) {
-         status.wlan = "down";
+         status.wlan = 'down';
       } else {
-         status.wlan = "up";
+         status.wlan = 'up';
       }
 
       callback(null, status);
     });
 }
+
 
 
 //get ipforward status
@@ -91,38 +95,40 @@ function ipfowardStat(callback) {
         }
 
         //console.log(data);
-        data = data.split("\n")[0];
-        if (data==="0") {
-            status.ipfwd = "down";
+        data = data.split('\n')[0];
+        if (data === '0') {
+            status.ipfwd = 'down';
         } else {
-            status.ipfwd = "up";
+            status.ipfwd = 'up';
         }
 
         callback(null, status);
       });
 
 }
+
 
 
 //get iptables rules apply
 function iptablesStat(callback) {
     var status = {};
-    var iptStatFile = "iptables_stats";
+    var iptStatFile = 'iptables_stats';
 
     fs.readFile(iptStatFile, {encoding:'utf8'},function (err, data) {
 
         //console.log(data);
-        data = data.split("\n")[0];
-        if (data==="0") {
-            status.iptables = "down";
+        data = data.split('\n')[0];
+        if ( data === '0' ) {
+            status.iptables = 'down';
         } else {
-            status.iptables = "up";
+            status.iptables = 'up';
         }
 
         callback(null, status);
       });
 
 }
+
 
 
 //get all the status
@@ -145,7 +151,7 @@ function allStatus(callback) {
             hostadp: results.hostapd.hostapd,
             ipTables: results.ipTables.iptables,
             wlan: results.wlan.wlan
-        }
+        };
 
         /* //only to debug
         console.log("dns: "+results.dns.dns);
@@ -159,6 +165,7 @@ function allStatus(callback) {
         callback(null, status);
     });
 }
+
 
 
 // GET HOSTNAME
@@ -178,9 +185,39 @@ function readHostname(callback) {
 }
 
 
+
+function uptimeString(time) {
+    var uptimeStr='';
+    
+    if ((time > 60) && (time > 60*60) && (time > 60*60*24)) {
+        //more 1 day ON
+        var days =  Math.floor(time/(60*60*24));
+        //console.log(days+" days");
+        time = time - (days*60*60*24);
+        uptimeStr = uptimeStr + days+' days ';
+    }
+
+    if ((time > 60) && (time > 60*60)) {
+        //more 1 hour ON
+        var hours =  Math.floor(time/(60*60));
+        //console.log(hours+" hours");
+        time = time - (hours*60*60);
+        uptimeStr = uptimeStr + hours+' hours ';
+    }
+
+    if (time > 60) {
+        //more 1 minute ON
+        var mins =  Math.floor(time/(60));
+        //console.log(mins+" mins");
+        uptimeStr = uptimeStr + mins+' mins';
+    }
+    return uptimeStr;
+}
+
+
+
 // GET UPTIME
 function readUptime(callback) {
-    var finalResponse = null;
     
     fs.readFile('/proc/uptime', { encoding: 'utf-8' }, function (err, uptime) {
         var finalRes = null,
@@ -223,33 +260,6 @@ function readUptime(callback) {
 }
 
 
-function uptimeString(time) {
-    var uptimeStr='';
-    if ((time > 60) && (time > 60*60) && (time > 60*60*24)) {
-        //more 1 day ON
-        var days =  Math.floor(time/(60*60*24));
-        //console.log(days+" days");
-        time = time - (days*60*60*24);
-        uptimeStr = uptimeStr + days+" days ";
-    }
-
-    if ((time > 60) && (time > 60*60)) {
-        //more 1 hour ON
-        var hours =  Math.floor(time/(60*60));
-        //console.log(hours+" hours");
-        time = time - (hours*60*60);
-        uptimeStr = uptimeStr + hours+" hours ";
-    }
-
-    if (time > 60) {
-        //more 1 minute ON
-        var mins =  Math.floor(time/(60));
-        //console.log(mins+" mins");
-        uptimeStr = uptimeStr + mins+" mins";
-    }
-    return uptimeStr;
-}
-
 
 // GET KERNEL
 function readKernel(callback) {
@@ -275,16 +285,21 @@ function getTemperature(callback) {
             encoding: 'utf8'
         },
         function (err, temp) {
+            // only raspberry pi has the file: /sys/class/thermal/thermal_zone0/temp
             if (err) {
+                /*
                 callback(null, {
                     message: 'getStatus.js: getTemperature:',
                     error: err
                 });
+                */
+                temp = null;
+                callback(null, temp);
 
                 return;
             }
         
-            temp = temp.split("\n")[0];
+            temp = temp.split('\n')[0];
             //console.log(parseInt(temp.substring(0,4))/100);
             temp =(parseInt(temp.substring(0,4))/100);
             //console.log(temp);
@@ -349,7 +364,7 @@ function readRam(callback) {
 // GET DISK INFO
 function readDisk(callback) {
 
-    var punto_montaje = fs_extra.statfs("/");
+    var punto_montaje = fs_extra.statfs('/');
     var disk = {};
 
     var available = parseInt(parseFloat(punto_montaje.f_bavail) * parseFloat(punto_montaje.f_bsize) / 1024 / 1024);
@@ -383,21 +398,21 @@ function readNet(callback) {
         lines.forEach(function (data) {
             var line = data.replace(/ +/g,' ');
             line = line.split(' ');
-            if (typeof line[1] === "undefined" ) {
+            if (typeof line[1] === 'undefined' ) {
                 // do nothing
             }
-            else if ((line[1].slice(-1) == ":") && (typeof line[1] != "undefined") && ( line[1]!= "lo:")) {
+            else if ((line[1].slice(-1) === ':') && (typeof line[1] !== 'undefined') && ( line[1] !== 'lo:')) {
                 //Calc Err/Drop
                 var err  = parseInt(line[4])+parseInt(line[12]);
                 var drop = parseInt(line[5])+parseInt(line[13]);
                 var inter = line[1].replace(':','');
                 net_info.push({
-                    "int_name": inter,
-                    "received": (line[2]/1024).toFixed(2),
-                    "send": (line[10]/1024).toFixed(2),
-                    "rx": line[3],
-                    "tx": line[11],
-                    "errdrop": err+'/'+drop
+                    'int_name': inter,
+                    'received': (line[2]/1024).toFixed(2),
+                    'send': (line[10]/1024).toFixed(2),
+                    'rx': line[3],
+                    'tx': line[11],
+                    'errdrop': err + '/' + drop
                 });
             }
         });

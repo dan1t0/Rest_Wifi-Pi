@@ -267,22 +267,28 @@ function readKernel(callback) {
 
 
 function getTemperature(callback) {
-    fs.readFile('/sys/class/thermal/thermal_zone0/temp', {encoding:'utf8'},function (err, temp) {
-        if (err) {
-            callback(null, {
-                message: 'getStatus.js: getTemperature:',
-                error: err
-            });
-            
-            return;
-        }
+    fs.readFile(
+        '/sys/class/thermal/thermal_zone0/temp',
+        {
+            encoding: 'utf8'
+        },
+        function (err, temp) {
+            if (err) {
+                callback(null, {
+                    message: 'getStatus.js: getTemperature:',
+                    error: err
+                });
+
+                return;
+            }
         
-        temp = temp.split("\n")[0];
-        //console.log(parseInt(temp.substring(0,4))/100);
-        temp =(parseInt(temp.substring(0,4))/100);
-        //console.log(temp);
-        callback(null, temp);
-    });
+            temp = temp.split("\n")[0];
+            //console.log(parseInt(temp.substring(0,4))/100);
+            temp =(parseInt(temp.substring(0,4))/100);
+            //console.log(temp);
+            callback(null, temp);
+        }
+    );
 }
 
 

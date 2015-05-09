@@ -182,4 +182,4 @@ var server = http.createServer(function (request, response) {
 // Starting the server
 server.listen(portListen);
 console.log( 'Server is listening in http://localhost:' +
-            portListen + 'with PID ' + process.pid);
+            portListen + ' with PID ' + process.pid);

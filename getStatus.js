@@ -133,32 +133,28 @@ function allStatus(callback) {
         ipTables: iptablesStat,
         wlan: wlanStat
     }, function (err, results) {
-        var status = {};
+        // We're never returning an error to stop breaking the loop
 
-        if (err) {
-            callback({
-                message: 'getStatus.js: allStatus:',
-                error: err
-            });
-        } else {
-            /* //only to debug
-            console.log("dns: "+results.dns.dns);
-            console.log("dhcp: "+results.dhcp.dhcp);
-            console.log("ipfwd: "+results.ipfwd.ipfwd);
-            console.log("hostadp: "+results.hostapd.hostapd);
-            console.log("ipTables: "+results.ipTables.iptables);
-            console.log("wlan: "+results.wlan.wlan);
-            */
-
-            status.dns = results.dns.dns;
-            status.dhcp = results.dhcp.dhcp;
-            status.ipfwd = results.ipfwd.ipfwd;
-            status.hostadp = results.hostapd.hostapd;
-            status.ipTables = results.ipTables.iptables;
-            status.wlan = results.wlan.wlan;
-
-            callback(null, status);
+        // Data massaging
+        var status = {
+            dns: results.dns.dns,
+            dhcp: results.dhcp.dhcp,
+            ipfwd: results.ipfwd.ipfwd,
+            hostadp: results.hostapd.hostapd,
+            ipTables: results.ipTables.iptables,
+            wlan: results.wlan.wlan
         }
+
+        /* //only to debug
+        console.log("dns: "+results.dns.dns);
+        console.log("dhcp: "+results.dhcp.dhcp);
+        console.log("ipfwd: "+results.ipfwd.ipfwd);
+        console.log("hostadp: "+results.hostapd.hostapd);
+        console.log("ipTables: "+results.ipTables.iptables);
+        console.log("wlan: "+results.wlan.wlan);
+        */
+
+        callback(null, status);
     });
 }
 
@@ -182,34 +178,48 @@ function readHostname(callback) {
 
 // GET UPTIME
 function readUptime(callback) {
+    var finalResponse = null;
+    
     fs.readFile('/proc/uptime', { encoding: 'utf-8' }, function (err, uptime) {
-        var lines;
+        var finalRes = null,
+            lines;
 
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: readUptime',
                 error: err
             });
-
+            
             return;
         }
 
+        // Just in case
         lines = uptime.split('\n');
-        lines.forEach(function (data) {
+        // If we found a valid one we stop the loop
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
+        lines.some(function (data) {
             var line = data.split(' ');
-
-            if (line != '' ) {
-                callback(null, uptimeString(line[0]));
-
-                return;
+            
+            if (line[0]) {
+                finalRes = uptimeString(line[0]);
+                
+                // Found, true will stop iteration
+                return true;
+            } else {
+                return false;
             }
-            callback({
+        });
+        if (finalRes) {
+            callback(null, finalRes);
+        } else {
+            callback(null, {
                 message: 'getStatus.js: readUptime: Not found',
                 error: err
             });
-        });
+        }
     });
 }
+
 
 function uptimeString(time) {
     var uptimeStr='';
@@ -259,14 +269,14 @@ function readKernel(callback) {
 function getTemperature(callback) {
     fs.readFile('/sys/class/thermal/thermal_zone0/temp', {encoding:'utf8'},function (err, temp) {
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: getTemperature:',
                 error: err
             });
-
+            
             return;
         }
-
+        
         temp = temp.split("\n")[0];
         //console.log(parseInt(temp.substring(0,4))/100);
         temp =(parseInt(temp.substring(0,4))/100);
@@ -326,7 +336,6 @@ function readRam(callback) {
         callback(null, ramData);
     });
 }
-
 
 
 // GET DISK INFO
@@ -390,52 +399,40 @@ function readNet(callback) {
 }
 
 
-
 function getHostStatus(callback) {
-    async.parallel(
-        {
-            hostname: readHostname,
-            uptime: readUptime,
-            kernel: readKernel,
-            ram: readRam,
-            net: readNet,
-            disk: readDisk,
-            temp: getTemperature
-        },
-        function (err, results) {
-            var stats = {};
+    async.parallel({
+        hostname: readHostname,
+        uptime: readUptime,
+        kernel: readKernel,
+        ram: readRam,
+        net: readNet,
+        disk: readDisk,
+        temp: getTemperature
+    },
+    function (err, results) {
+        // Data massaging
+        var stats = {
+            hostname: results.hostname,
+            uptime: results.uptime,
+            kernel: results.kernel,
+            ram: results.ram,
+            net: results.net,
+            temp: results.temp,
+            disk: results.disk
+        };
 
-            if (err) {
-                callback({
-                    message: 'getStatus.js: getHostStatus: async',
-                    // TODO: More verbose error
-                    error: err
-                });
+        // Fill the structure and return it in the callback
+        stats.disk.disk_percent = (parseFloat((results.disk.disk_used/(results.disk.disk_total*1024))*100).toFixed(2));
 
-                return;
-            }
+        stats.ram.ram_used = (results.ram.ram_total - results.ram.ram_available);
+        stats.ram.ram_percent = parseFloat(((stats.ram.ram_used*100) / stats.ram.ram_total).toFixed(2));
 
-            stats.hostname = results.hostname;
-            stats.uptime = results.uptime;
-            stats.kernel = results.kernel;
-            stats.ram = results.ram;
-            stats.net = results.net;
-            stats.temp = results.temp;
-            stats.disk = results.disk;
-
-            // Fill the structure and return it in the callback
-            stats.disk.disk_percent = (parseFloat((results.disk.disk_used/(results.disk.disk_total*1024))*100).toFixed(2));
-
-            stats.ram.ram_used = (results.ram.ram_total - results.ram.ram_available);
-            stats.ram.ram_percent = parseFloat(((stats.ram.ram_used*100) / stats.ram.ram_total).toFixed(2));
-
-            stats.ram.swap_used = (results.ram.swap_total - results.ram.swap_free);
-            stats.ram.swap_percent = (parseFloat((results.ram.swap_used/results.ram.swap_total)*100).toFixed(2));
+        stats.ram.swap_used = (results.ram.swap_total - results.ram.swap_free);
+        stats.ram.swap_percent = (parseFloat((results.ram.swap_used/results.ram.swap_total)*100).toFixed(2));
 
 
-            callback(null, stats);
-        }
-    );
+        callback(null, stats);
+    });
 }
 
 

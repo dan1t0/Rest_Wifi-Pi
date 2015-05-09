@@ -3,6 +3,8 @@
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var exec = require('child_process').exec,
+    
+    GLOBAL_CFG = require('./config'),
 
     child;
 

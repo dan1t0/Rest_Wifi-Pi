@@ -80,7 +80,9 @@ function ipfowardStat(callback) {
     var status = {};
     fs.readFile('/proc/sys/net/ipv4/ip_forward', {encoding:'utf8'},function (err, data) {
         if (err) {
-            callback({
+            // We don't want to stop the async chain so we return this error like any
+            // other regular result
+            callback(null, {
                 message: 'getStatus.js: ipfowardStat:',
                 error: err
             });
@@ -163,7 +165,7 @@ function allStatus(callback) {
 function readHostname(callback) {
     fs.readFile('/proc/sys/kernel/hostname', { encoding: 'utf-8' }, function (err, hostn) {
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: readHostname:',
                 error: err
             });
@@ -253,7 +255,7 @@ function uptimeString(time) {
 function readKernel(callback) {
     fs.readFile('/proc/sys/kernel/osrelease', { encoding: 'utf-8' }, function (err, kernel) {
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: readKernel:',
                 error: err
             });
@@ -299,7 +301,7 @@ function readRam(callback) {
             lines;
 
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: readRam:',
                 error: err
             });
@@ -369,7 +371,7 @@ function readNet(callback) {
             lines;
 
         if (err) {
-            callback({
+            callback(null, {
                 message: 'getStatus.js: readNet:',
                 error: err
             });

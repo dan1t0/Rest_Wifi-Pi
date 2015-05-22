@@ -1,6 +1,7 @@
 'use strict';
 
-var JS_FILES = ['Gruntfile.js', '*.js'];
+var JS_FILES = ['*.js', 'controllers/*.js', 'models/*.js', 'utils/*.js'];
+
 
 
 module.exports = function (grunt) {
@@ -42,6 +43,6 @@ module.exports = function (grunt) {
 
     // Aliases
 
-    grunt.task.registerTask('contribute', ['jshint', 'jscs']);
+    grunt.task.registerTask('lint', ['jshint', 'jscs']);
 
 };

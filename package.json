@@ -8,10 +8,10 @@
     "api",
     "wifi"
   ],
-  "repository" : [
+  "repository": [
     {
-      "type" : "git",
-      "url" : "https://github.com/dan1t0/Rest_Wifi-Pi.git"
+      "type": "git",
+      "url": "https://github.com/dan1t0/Rest_Wifi-Pi.git"
     }
   ],
   "maintainers": [
@@ -19,6 +19,11 @@
       "name": "Dani Martinez - @dan1t0",
       "email": "dan1t0@dan1t0.com",
       "web": "https://github.com/dan1t0/Rest_Wifi-Pi/"
+    },
+    {
+      "name": "Jesús Pérez - @jesusprubio",
+      "email": "jesusprubio@gmail.com",
+      "web": "http://jesusprubio.name"
     }
   ],
   "bugs": {
@@ -31,15 +36,14 @@
     }
   ],
   "scripts": {
-	  "start": "node server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "async": "^0.9.0",
-    "sqlite3": "^3.0.5",
-    "sqlite3": "^3.0.5",
-    "ref-struct": "^1.0.1",
+    "ffi": "^1.3.1",
     "ref": "^1.0.1",
-    "ffi": "^1.3.1"
+    "ref-struct": "^1.0.1",
+    "sqlite3": "^3.0.8"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

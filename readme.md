@@ -21,7 +21,7 @@ Very simple API Rest in nodejs to control RaspWifi-Pi: monitor and interactive (
 - Use [GitHub pull requests](https://help.github.com/articles/using-pull-requests).
 - Conventions:
  - We use [JSHint](http://jshint.com/) and [Crockford's Styleguide](http://javascript.crockford.com/code.html).
- - Please run `grunt contribute` to be sure your code fits with them.
+ - Please run `grunt lint` to be sure your code fits with them.
 
 ## Issues
 - https://github.com/dan1t0/Rest_Wifi-Pi/issues

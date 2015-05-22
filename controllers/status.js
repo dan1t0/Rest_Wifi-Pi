@@ -1,174 +1,21 @@
 'use strict';
 
-var fs = require('fs');
-var async = require('async');
-var exec = require('child_process').exec;
+var fs = require('fs'),
+    async = require('async'),
+    execCom = require('child_process').exec,
 
-var fs_extra = require('./statfs.js');
-var GLOBAL_CFG = require('./config');
+    fsExtra = require('../utils/statfs'),
 
-var child;
+    GLOBAL_CFG = require('../config.json'),
+    IPT_STAT_FILE = './artifacts/iptables_stats',
 
-
-
-// get dns status
-function dnsStat(callback) {
-   var status = {};
-   child = exec('ps -e | grep -v grep | grep dnsmasq',function (error) {
-
-      if (error) {
-         status.dns = 'down';
-      } else {
-         status.dns = 'up';
-      }
-
-      callback(null, status);
-    });
-}
+    child;
 
 
 
-// get dhcp status
-function dhcpStat(callback) {
-   var status = {};
-   child = exec('ps -e | grep -v grep | grep dhcpd',function (error) {
+// Helpers
 
-      if (error) {
-         status.dhcp = 'down';
-      } else {
-         status.dhcp = 'up';
-      }
-
-      callback(null, status);
-    });
-}
-
-
-
-// get hostapd status
-function hostapdStat(callback) {
-   var status = {};
-   child = exec('ps -e | grep -v grep | grep hostapd',function (error) {
-
-      if (error) {
-         status.hostapd = 'down';
-      } else {
-         status.hostapd = 'up';
-      }
-
-      callback(null, status);
-    });
-}
-
-
-
-// get hostapd status
-function wlanStat(callback) {
-   var status = {};
-   child = exec('/sbin/ifconfig | grep '+GLOBAL_CFG.ifaces.ap+' | grep -v grep | grep -v "mon."',function (error) {
-
-      if (error) {
-         status.wlan = 'down';
-      } else {
-         status.wlan = 'up';
-      }
-
-      callback(null, status);
-    });
-}
-
-
-
-//get ipforward status
-function ipfowardStat(callback) {
-    var status = {};
-    fs.readFile('/proc/sys/net/ipv4/ip_forward', {encoding:'utf8'},function (err, data) {
-        if (err) {
-            // We don't want to stop the async chain so we return this error like any
-            // other regular result
-            callback(null, {
-                message: 'getStatus.js: ipfowardStat:',
-                error: err
-            });
-
-            return;
-        }
-
-        //console.log(data);
-        data = data.split('\n')[0];
-        if (data === '0') {
-            status.ipfwd = 'down';
-        } else {
-            status.ipfwd = 'up';
-        }
-
-        callback(null, status);
-      });
-
-}
-
-
-
-//get iptables rules apply
-function iptablesStat(callback) {
-    var status = {};
-    var iptStatFile = 'iptables_stats';
-
-    fs.readFile(iptStatFile, {encoding:'utf8'},function (err, data) {
-
-        //console.log(data);
-        data = data.split('\n')[0];
-        if ( data === '0' ) {
-            status.iptables = 'down';
-        } else {
-            status.iptables = 'up';
-        }
-
-        callback(null, status);
-      });
-
-}
-
-
-
-//get all the status
-function allStatus(callback) {
-    async.parallel({
-        dns: dnsStat,
-        dhcp: dhcpStat,
-        ipfwd: ipfowardStat,
-        hostapd: hostapdStat,
-        ipTables: iptablesStat,
-        wlan: wlanStat
-    }, function (err, results) {
-        // We're never returning an error to stop breaking the loop
-
-        // Data massaging
-        var status = {
-            dns: results.dns.dns,
-            dhcp: results.dhcp.dhcp,
-            ipfwd: results.ipfwd.ipfwd,
-            hostadp: results.hostapd.hostapd,
-            ipTables: results.ipTables.iptables,
-            wlan: results.wlan.wlan
-        };
-
-        /* //only to debug
-        console.log("dns: "+results.dns.dns);
-        console.log("dhcp: "+results.dhcp.dhcp);
-        console.log("ipfwd: "+results.ipfwd.ipfwd);
-        console.log("hostadp: "+results.hostapd.hostapd);
-        console.log("ipTables: "+results.ipTables.iptables);
-        console.log("wlan: "+results.wlan.wlan);
-        */
-
-        callback(null, status);
-    });
-}
-
-
-
-// GET HOSTNAME
+// Get hostname
 function readHostname(callback) {
     fs.readFile('/proc/sys/kernel/hostname', { encoding: 'utf-8' }, function (err, hostn) {
         if (err) {
@@ -185,40 +32,39 @@ function readHostname(callback) {
 }
 
 
-
+// Get a human readable string from the host uptime
 function uptimeString(time) {
-    var uptimeStr='';
-    
-    if ((time > 60) && (time > 60*60) && (time > 60*60*24)) {
+    var uptimeStr = '',
+        days, hours, mins;
+
+    if ((time > 60) && (time > 60 * 60) && (time > 60 * 60 * 24)) {
         //more 1 day ON
-        var days =  Math.floor(time/(60*60*24));
+        days =  Math.floor(time / (60 * 60 * 24));
         //console.log(days+" days");
-        time = time - (days*60*60*24);
-        uptimeStr = uptimeStr + days+' days ';
+        time = time - (days * 60 * 60 * 24);
+        uptimeStr = uptimeStr + days + ' days ';
     }
 
-    if ((time > 60) && (time > 60*60)) {
+    if ((time > 60) && (time > 60 * 60)) {
         //more 1 hour ON
-        var hours =  Math.floor(time/(60*60));
+        hours =  Math.floor(time / (60 * 60));
         //console.log(hours+" hours");
-        time = time - (hours*60*60);
-        uptimeStr = uptimeStr + hours+' hours ';
+        time = time - (hours * 60 * 60);
+        uptimeStr = uptimeStr + hours + ' hours ';
     }
 
     if (time > 60) {
         //more 1 minute ON
-        var mins =  Math.floor(time/(60));
+        mins =  Math.floor(time / (60));
         //console.log(mins+" mins");
-        uptimeStr = uptimeStr + mins+' mins';
+        uptimeStr = uptimeStr + mins + ' mins';
     }
     return uptimeStr;
 }
 
 
-
-// GET UPTIME
+// Get the host uptime
 function readUptime(callback) {
-    
     fs.readFile('/proc/uptime', { encoding: 'utf-8' }, function (err, uptime) {
         var finalRes = null,
             lines;
@@ -228,7 +74,7 @@ function readUptime(callback) {
                 message: 'getStatus.js: readUptime',
                 error: err
             });
-            
+
             return;
         }
 
@@ -238,10 +84,10 @@ function readUptime(callback) {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
         lines.some(function (data) {
             var line = data.split(' ');
-            
+
             if (line[0]) {
                 finalRes = uptimeString(line[0]);
-                
+
                 // Found, true will stop iteration
                 return true;
             } else {
@@ -260,8 +106,7 @@ function readUptime(callback) {
 }
 
 
-
-// GET KERNEL
+// Get the host kernel info
 function readKernel(callback) {
     fs.readFile('/proc/sys/kernel/osrelease', { encoding: 'utf-8' }, function (err, kernel) {
         if (err) {
@@ -278,6 +123,7 @@ function readKernel(callback) {
 }
 
 
+// Get the host temperature
 function getTemperature(callback) {
     fs.readFile(
         '/sys/class/thermal/thermal_zone0/temp',
@@ -298,10 +144,10 @@ function getTemperature(callback) {
 
                 return;
             }
-        
+
             temp = temp.split('\n')[0];
-            //console.log(parseInt(temp.substring(0,4))/100);
-            temp =(parseInt(temp.substring(0,4))/100);
+            //console.log(parseInt(temp.substring(0,4)) / 100);
+            temp = (parseInt(temp.substring(0, 4)) / 100);
             //console.log(temp);
             callback(null, temp);
         }
@@ -309,7 +155,7 @@ function getTemperature(callback) {
 }
 
 
-// GET RAM INFO
+// Get host RAM info
 function readRam(callback) {
     fs.readFile('/proc/meminfo', { encoding: 'utf-8' }, function (err, ram) {
         var ramData = {},
@@ -327,8 +173,9 @@ function readRam(callback) {
         lines = ram.split('\n');
         lines.forEach(function (data) {
             /* Remove multiple spaces with just one */
-            var line = data.replace(/ +(?= )/g,'');
-            var field = line.split(' ');
+            var line = data.replace(/ +(?= )/g, ''),
+                field = line.split(' ');
+
             switch (field[0]) {
                 case 'MemFree:':
                     ramData.ram_free = field[1];
@@ -361,10 +208,10 @@ function readRam(callback) {
 }
 
 
-// GET DISK INFO
+// Get host disk info
 function readDisk(callback) {
 
-    var punto_montaje = fs_extra.statfs('/');
+    var punto_montaje = fsExtra.statfs('/');
     var disk = {};
 
     var available = parseInt(parseFloat(punto_montaje.f_bavail) * parseFloat(punto_montaje.f_bsize) / 1024 / 1024);
@@ -379,7 +226,7 @@ function readDisk(callback) {
 }
 
 
-// GET NETWORK INFO
+// Get host network info
 function readNet(callback) {
     fs.readFile('/proc/net/dev', { encoding: 'utf-8' }, function (err, netinf) {
         var net_info = [],
@@ -396,20 +243,20 @@ function readNet(callback) {
 
         lines = netinf.split('\n');
         lines.forEach(function (data) {
-            var line = data.replace(/ +/g,' ');
+            var line = data.replace(/ +/g, ' '),
+            err, drop, inter;
+
             line = line.split(' ');
-            if (typeof line[1] === 'undefined' ) {
-                // do nothing
-            }
-            else if ((line[1].slice(-1) === ':') && (typeof line[1] !== 'undefined') && ( line[1] !== 'lo:')) {
+            if (typeof line[1] !== 'undefined' && line[1].slice(-1) === ':' && line[1] !== 'lo:') {
                 //Calc Err/Drop
-                var err  = parseInt(line[4])+parseInt(line[12]);
-                var drop = parseInt(line[5])+parseInt(line[13]);
-                var inter = line[1].replace(':','');
+                err  = parseInt(line[4]) + parseInt(line[12]);
+                drop = parseInt(line[5]) + parseInt(line[13]);
+                inter = line[1].replace(':', '');
+
                 net_info.push({
                     'int_name': inter,
-                    'received': (line[2]/1024).toFixed(2),
-                    'send': (line[10]/1024).toFixed(2),
+                    'received': (line[2] / 1024).toFixed(2),
+                    'send': (line[10] / 1024).toFixed(2),
                     'rx': line[3],
                     'tx': line[11],
                     'errdrop': err + '/' + drop
@@ -422,7 +269,128 @@ function readNet(callback) {
 }
 
 
-function getHostStatus(callback) {
+function ipfowardStat(callback) {
+    var status = {};
+
+    fs.readFile(
+        '/proc/sys/net/ipv4/ip_forward',
+        {
+            encoding: 'utf8'
+        },
+        function (err, data) {
+            if (err) {
+                // We don't want to stop the async chain so we return this error like any
+                // other regular result
+                callback(null, {
+                    message: 'getStatus.js: ipfowardStat:',
+                    error: err
+                });
+
+                return;
+            }
+
+            //console.log(data);
+            data = data.split('\n')[0];
+            if (data === '0') {
+                status.ipfwd = 'down';
+            } else {
+                status.ipfwd = 'up';
+            }
+
+            callback(null, status);
+        }
+    );
+}
+
+
+function wlanStat(callback) {
+    var status = {};
+
+    child = execCom(
+        '/sbin/ifconfig | grep ' + GLOBAL_CFG.ifaces.ap + ' | grep -v grep | grep -v "mon."',
+        function (error) {
+            if (error) {
+                status.wlan = 'down';
+            } else {
+                status.wlan = 'up';
+            }
+            callback(null, status);
+        }
+    );
+}
+
+
+function dnsStat(callback) {
+    var status = {};
+
+    child = execCom('ps -e | grep -v grep | grep dnsmasq', function (error) {
+        if (error) {
+            status.dns = 'down';
+        } else {
+            status.dns = 'up';
+        }
+
+        callback(null, status);
+    });
+}
+
+
+function dhcpStat(callback) {
+    var status = {};
+
+    child = execCom('ps -e | grep -v grep | grep dhcpd', function (error) {
+        if (error) {
+            status.dhcp = 'down';
+        } else {
+            status.dhcp = 'up';
+        }
+
+        callback(null, status);
+    });
+}
+
+
+function hostapdStat(callback) {
+    var status = {};
+
+    child = execCom('ps -e | grep -v grep | grep hostapd', function (error) {
+        if (error) {
+            status.hostapd = 'down';
+        } else {
+            status.hostapd = 'up';
+        }
+
+        callback(null, status);
+    });
+}
+
+
+function iptablesStat(callback) {
+    var status = {};
+
+    fs.readFile(
+        IPT_STAT_FILE,
+        {
+            encoding: 'utf8'
+        },
+        function (err, data) {
+            data = data.split('\n')[0];
+            if (data === '0') {
+                status.iptables = 'down';
+            } else {
+                status.iptables = 'up';
+            }
+
+            callback(null, status);
+        }
+    );
+}
+
+
+
+// Public
+
+module.exports.getHostStatus = function (callback) {
     async.parallel({
         hostname: readHostname,
         uptime: readUptime,
@@ -456,14 +424,63 @@ function getHostStatus(callback) {
 
         callback(null, stats);
     });
-}
+};
 
 
-module.exports.getHostStatus = getHostStatus;
-module.exports.allStatus = allStatus;
+// get iptables rules apply
 module.exports.iptablesStat = iptablesStat;
+
+
+// get hostapd status
 module.exports.hostapdStat = hostapdStat;
+
+// get dhcp status
 module.exports.dhcpStat = dhcpStat;
+
+
+// get dns status
 module.exports.dnsStat = dnsStat;
+
+
+// get wlan status
 module.exports.wlanStat = wlanStat;
+
+
+// get ipforward status
 module.exports.ipfowardStat = ipfowardStat;
+
+
+// get all the status
+module.exports.allStatus =  function (callback) {
+    async.parallel({
+        dns: dnsStat,
+        dhcp: dhcpStat,
+        ipfwd: ipfowardStat,
+        hostapd: hostapdStat,
+        ipTables: iptablesStat,
+        wlan: wlanStat
+    }, function (err, results) {
+        // We're never returning an error to stop breaking the loop
+
+        // Data massaging
+        var status = {
+            dns: results.dns.dns,
+            dhcp: results.dhcp.dhcp,
+            ipfwd: results.ipfwd.ipfwd,
+            hostadp: results.hostapd.hostapd,
+            ipTables: results.ipTables.iptables,
+            wlan: results.wlan.wlan
+        };
+
+        /* //only to debug
+        console.log("dns: "+results.dns.dns);
+        console.log("dhcp: "+results.dhcp.dhcp);
+        console.log("ipfwd: "+results.ipfwd.ipfwd);
+        console.log("hostadp: "+results.hostapd.hostapd);
+        console.log("ipTables: "+results.ipTables.iptables);
+        console.log("wlan: "+results.wlan.wlan);
+        */
+
+        callback(null, status);
+    });
+};

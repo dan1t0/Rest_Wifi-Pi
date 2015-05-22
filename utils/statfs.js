@@ -1,9 +1,12 @@
 'use strict';
 
-var ffi = require('ffi');
-var ref = require('ref');
-var Struct = require("ref-struct");
+var ffi = require('ffi'),
+    ref = require('ref'),
+    Struct = require('ref-struct');
 
+
+
+// Public
 
 /**
  * Native libc binding for statfs() function
@@ -13,8 +16,7 @@ var Struct = require("ref-struct");
  *
  * By Jaime Peñalba - https://twitter.com/nighterman
  */
-function statfs(path) {
-
+module.exports.statfs = function (path) {
     var StructStatfs = Struct({
         'f_type': 'long',
         'f_bsize': 'long',
@@ -23,22 +25,17 @@ function statfs(path) {
         'f_bavail': 'long',
         'f_files': 'long',
         'f_ffree': 'long'
-    });
+    }),
+    statfsPtr = ref.refType(StructStatfs),
+    current = ffi.Library(null, {
+        'statfs': ['int', ['string', statfsPtr]]
+    }),
+    buf = new StructStatfs(),
+    res = current.statfs(path, buf.ref());
 
-    var statfsPtr = ref.refType(StructStatfs);
-
-    var current = ffi.Library(null, {
-        'statfs': [ 'int', [ 'string', statfsPtr] ]
-    });
-
-    var buf = new StructStatfs();
-    var res = current.statfs(path, buf.ref());
-
-    if (res != 0)
+    if (res !== 0) {
         return null;
-    else
+    } else {
         return buf;
-}
-
-
-module.exports.statfs = statfs;
+    }
+};
